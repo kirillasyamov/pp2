@@ -11,3 +11,10 @@ export const registerValidation = [
     body('fullName', 'INCORRECT USERNAME FORMAT').isLength({ min: 3 }),
     body('avatarUrl', 'INCORRECT URL TO AVATAR').optional().isURL(),
 ]
+
+export const postCreateValidation = [
+    body('title', `ENTER A TITLE`).isLength({ min: 3 }).isString(),
+    body('text', `ENTER A POST`).isLength({ min: 10 }).isString(),
+    body('tags', `UNEXPECTED FORMAT OF TAGS`).optional().isString(),
+    body('imageUrl', `UNEXPECTED FORMAT OF IMAGINES URL`).optional().isURL(),
+]
