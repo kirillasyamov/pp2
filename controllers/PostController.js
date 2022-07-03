@@ -72,3 +72,64 @@ export const getOne = async (req, res) => {
         })
     }
 }
+
+export const remove = async (req, res) => {
+    try {
+        const postId = req.params.id
+
+        PostModel.findOneAndDelete({
+            _id: postId,
+        },
+
+            (err, doc) => {
+                if (err) {
+                    console.log(err)
+                    return res.status(500).json({
+                        message: `UNABLE TO DELETE POST`,
+                    })
+                }
+                if (!doc) {
+                    return res.status(404).json({
+                        message: `UNABLE TO GET POST BY ID`,
+                    })
+                }
+                res.json({
+                    success: true,
+                })
+            }
+
+        )
+    } catch (e) {
+        console.log(e)
+        res.status(500).json({
+            message: `UNABLE TO DELETE POST`,
+        })
+    }
+}
+
+export const update = async (req, res) => {
+    try {
+        const postId = req.params.id
+        await PostModel.updateOne(
+            {
+                _id: postId,
+            },
+            {
+                title: req.body.title,
+                text: req.body.text,
+                imageUrl: req.body.imageUrl,
+                tags: req.body.tags,
+                user: req.userId,
+
+            })
+
+        res.json({
+            success: true,
+        })
+    } catch (e) {
+        console.log(e)
+        res.status(500).json({
+            message: `UNABLE TO UPDATE POST`,
+        })
+    }
+}

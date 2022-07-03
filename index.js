@@ -26,6 +26,8 @@ app.get('/auth/me', checkAuth, UserController.getMe)
 app.post('/posts', checkAuth, postCreateValidation, PostController.create)
 app.get('/posts/:id', PostController.getOne)
 app.get('/posts', PostController.getAll)
+app.delete('/posts/:id', checkAuth, PostController.remove)
+app.patch('/posts/:id', checkAuth, PostController.update)
 
 app.listen(PORT, (err) => {
     if (err) {
