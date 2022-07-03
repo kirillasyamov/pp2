@@ -1,34 +1,28 @@
+const SECRETKEY = `abzzaaz`
+const PORT = 4444
+import * as UserController from './controllers/UserController.js'
+
 import express from 'express'
-import jwt from 'jsonwebtoken'
+import { registerValidation, loginValidation } from './validations.js'
 import mongoose from 'mongoose'
-import { registerValidation } from './validations/auth.js'
-import { validationResult } from 'express-validator';
-
-
+import checkAuth from './utils/checkAuth.js'
 
 mongoose
-    .connect('mongodb+srv://admin:root@cluster1.v03ym.mongodb.net/?retryWrites=true&w=majority')
+    .connect('mongodb+srv://admin:root@cluster1.v03ym.mongodb.net/blog?retryWrites=true&w=majority')
     .then(() => console.log('DB connected'))
-    .catch((e) => console.log('DB error', e))
+    .catch((e) => console.log('DB error', e));
+
 
 
 const app = express()
 
-app.use(express.json)
+app.use(express.json())
 
-app.post('./auth/register', registerValidation, (req, res) => {
-    const errors = validationResult(req)
-    if (!errors.isEmpty()) {
-        return res.status(400).json(errors.array())
-    } else {
-        return res.json({
-            success: true,
-        })
-    }
-})
+app.post('/auth/register', registerValidation, UserController.register)
+app.post('/auth/login', loginValidation, UserController.login)
+app.get('/auth/me', checkAuth, UserController.getMe)
 
-
-app.listen(4444, (err) => {
+app.listen(PORT, (err) => {
     if (err) {
         return console.log(err)
     } else { console.log(`SERVER started`) }
