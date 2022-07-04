@@ -1,6 +1,7 @@
-const SECRETKEY = `abzzaaz`
+import dotenv from 'dotenv'
+dotenv.config()
+const SECRET_KEY = process.env.SECRET_KEY
 
-import { validationResult } from 'express-validator'
 import UserModel from '../models/User.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
@@ -8,34 +9,30 @@ import bcrypt from 'bcrypt'
 
 export const register = async (req, res) => {
     try {
-        const errors = validationResult(req)
-        if (!errors.isEmpty()) {
-            return res.status(400).json(errors.array())
-        } else {
-            const password = req.body.password
-            const salt = await bcrypt.genSalt(10)
-            const hash = await bcrypt.hash(password, salt)
+        const password = req.body.password
+        const salt = await bcrypt.genSalt(10)
+        const hash = await bcrypt.hash(password, salt)
 
-            const doc = new UserModel({
-                email: req.body.email,
-                fullName: req.body.fullName,
-                passwordHash: hash,
-                avatarUrl: req.body.avatarUrl,
-            })
+        const doc = new UserModel({
+            email: req.body.email,
+            fullName: req.body.fullName,
+            passwordHash: hash,
+            avatarUrl: req.body.avatarUrl,
+        })
 
-            const user = await doc.save()
+        const user = await doc.save()
 
-            const token = jwt.sign({
-                _id: user._id,
-            }, SECRETKEY, { expiresIn: `24h` })
+        const token = jwt.sign({
+            _id: user._id,
+        }, SECRET_KEY
+            , { expiresIn: `24h` })
 
-            const { passwordHash, ...userData } = user._doc
+        const { passwordHash, ...userData } = user._doc
 
-            res.json({
-                ...userData,
-                token,
-            })
-        }
+        res.json({
+            ...userData,
+            token,
+        })
     } catch (e) {
         console.log(e)
         res.status(500).json({
@@ -64,7 +61,8 @@ export const login = async (req, res) => {
 
         const token = jwt.sign({
             _id: user._id,
-        }, SECRETKEY, { expiresIn: `24h` })
+        }, SECRET_KEY
+            , { expiresIn: `24h` })
 
         const { passwordHash, ...userData } = user._doc
 

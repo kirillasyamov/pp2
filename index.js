@@ -1,37 +1,55 @@
-const SECRETKEY = `abzzaaz`
-const PORT = 4444
-import * as UserController from './controllers/UserController.js'
-import * as PostController from './controllers/PostController.js'
-
 import express from 'express'
-import { registerValidation, loginValidation, postCreateValidation } from './validations.js'
 import mongoose from 'mongoose'
-import checkAuth from './utils/checkAuth.js'
+import multer from 'multer'
+import dotenv from 'dotenv'
+
+import { UserController, PostController } from './controllers/export.js'
+import { registerValidation, loginValidation, postingValidation } from './validations.js'
+import { handleValidationErrors, checkAuth } from './utils/export.js'
+
+dotenv.config()
+const PORT = process.env.PORT
+const DB_CONN = process.env.DB_CONN
 
 mongoose
-    .connect('mongodb+srv://admin:root@cluster1.v03ym.mongodb.net/blog?retryWrites=true&w=majority')
+    .connect(DB_CONN)
     .then(() => console.log('DB connected'))
     .catch((e) => console.log('DB error', e));
 
-
-
 const app = express()
 
-app.use(express.json())
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'uploads')
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname)
+    }
+})
 
-app.post('/auth/register', registerValidation, UserController.register)
-app.post('/auth/login', loginValidation, UserController.login)
+const upload = multer({ storage })
+
+app.use(express.json())
+app.use('/uploads', express.static('uploads'))
+
+app.post('/upload', upload.single('image'), (req, res) => {
+    res.json({
+        url: `/uploads/${req.file.originalname}`,
+    })
+})
+
+app.post('/auth/register', registerValidation, handleValidationErrors, UserController.register)
+app.post('/auth/login', loginValidation, handleValidationErrors, UserController.login)
 app.get('/auth/me', checkAuth, UserController.getMe)
 
-app.post('/posts', checkAuth, postCreateValidation, PostController.create)
+app.post('/posts', checkAuth, postingValidation, handleValidationErrors, PostController.create)
 app.get('/posts/:id', PostController.getOne)
 app.get('/posts', PostController.getAll)
 app.delete('/posts/:id', checkAuth, PostController.remove)
-app.patch('/posts/:id', checkAuth, PostController.update)
+app.patch('/posts/:id', checkAuth, postingValidation, handleValidationErrors, PostController.update)
 
 app.listen(PORT, (err) => {
     if (err) {
         return console.log(err)
     } else { console.log(`SERVER started`) }
 })
-
